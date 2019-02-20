@@ -217,11 +217,12 @@ public final class Database {
     internal func execute(command document: Document, until timeout: TimeInterval = 0, writing: Bool = true, using connection: Connection) throws -> ServerReply {
         log.debug("Executing the following command:")
         log.debug(document)
-        
+        print("\(#function) - Step 1")
         print("Executing the following command:")
         print(document)
         
         let commandMessage = Message.Query(requestID: server.nextMessageID(), flags: [], collection: cmd, numbersToSkip: 0, numbersToReturn: 1, query: document, returnFields: nil)
+        print("\(#function) - Step 2")
         return try server.sendAndAwait(message: commandMessage, overConnection: connection, timeout: timeout)
     }
 }
