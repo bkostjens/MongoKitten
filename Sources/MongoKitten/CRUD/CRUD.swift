@@ -491,42 +491,44 @@ extension CollectionQueryable {
     }
     
     func find(filter: Query?, sort: Sort?, projection: Projection?, readConcern: ReadConcern?, collation: Collation?, skip: Int?, limit: Int?, batchSize: Int = 100, connection: Connection?) throws -> CollectionSlice<Document> {
+        print("\(#function) - Step 1)")
         if self.collection.database.server.buildInfo.version >= Version(3,2,0) {
+            print("\(#function) - Step 1.1)")
             var command: Document = [
                 "find": collection.name,
                 "readConcern": readConcern ?? collection.readConcern,
                 "collation": collation ?? collection.collation,
                 "batchSize": Int32(batchSize)
             ]
-            
+            print("\(#function) - Step 1.2)")
             if let filter = filter {
                 command["filter"] = filter
             }
-            
+            print("\(#function) - Step 1.3)")
             if let sort = sort {
                 command["sort"] = sort
             }
-            
+            print("\(#function) - Step 1.4)")
             if let projection = projection {
                 command["projection"] = projection
             }
-            
+            print("\(#function) - Step 1.5)")
             if let skip = skip {
                 command["skip"] = Int32(skip) as Int32
             }
-            
+            print("\(#function) - Step 1.6)")
             if let limit = limit {
                 command["limit"] = Int32(limit) as Int32
             }
-            
+            print("\(#function) - Step 1.7)")
             if let listener = database.server.whenExplaining {
                 listener(try collection.explained.find(filter, sortedBy: sort, projecting: projection, readConcern: readConcern, collation: collation, skipping: skip, limitedTo: limit, withBatchSize: batchSize))
             }
-            
+            print("\(#function) - Step 1.8)")
             let cursorConnection = try connection ?? (try self.database.server.reserveConnection(authenticatedFor: self.collection.database))
-            
+            print("\(#function) - Step 1.9)")
             let reply = try self.database.execute(command: command, until: 30, writing: false, using: cursorConnection)
-            
+            print("\(#function) - Step 1.10)")
             guard let responseDoc = reply.documents.first, let cursorDoc = Document(responseDoc["cursor"]) else {
                 if connection == nil {
                     self.database.server.returnConnection(cursorConnection)
@@ -534,11 +536,11 @@ extension CollectionQueryable {
                 
                 throw MongoError.invalidResponse(documents: reply.documents)
             }
-            
+            print("\(#function) - Step 1.11)")
             let cursor = try Cursor(cursorDocument: cursorDoc, collection: self.collection, connection: cursorConnection, chunkSize: Int32(batchSize), transform: { doc in
                 return doc
             })
-            
+            print("\(#function) - Step 1.12)")
             return CollectionSlice(cursor: cursor, filter: filter, sort: sort, projection: projection, skip: skip, limit: limit)
         } else {
             let queryMsg = Message.Query(requestID: collection.database.server.nextMessageID(), flags: [], collection: collection, numbersToSkip: Int32(skip) ?? 0, numbersToReturn: Int32(batchSize), query: filter?.queryDocument ?? [], returnFields: projection?.document)
