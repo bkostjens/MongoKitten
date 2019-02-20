@@ -279,7 +279,7 @@ public final class GridFS {
             guard start >= 0 else {
                 throw MongoError.negativeDataRequested
             }
-            print("GridFS read - Step 7")
+            print("GridFS read - Step 7 - files_id = \(id) - skipping = \(skipChunks) - limitedTo = \(endChunk - skipChunks) - endChunk = \(endChunk)")
             let chunkCollector = try chunksCollection.find("files_id" == id, sortedBy: ["n": .ascending], skipping: skipChunks, limitedTo: endChunk - skipChunks)
             print("GridFS read - Step 7.1")
             let chunkCursor = try chunkCollector.flatMap { (doc) -> (Chunk?) in
