@@ -218,6 +218,9 @@ public final class Database {
         log.debug("Executing the following command:")
         log.debug(document)
         
+        print("Executing the following command:")
+        print(document)
+        
         let commandMessage = Message.Query(requestID: server.nextMessageID(), flags: [], collection: cmd, numbersToSkip: 0, numbersToReturn: 1, query: document, returnFields: nil)
         return try server.sendAndAwait(message: commandMessage, overConnection: connection, timeout: timeout)
     }
