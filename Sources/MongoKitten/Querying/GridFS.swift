@@ -281,6 +281,7 @@ public final class GridFS {
             }
             print("GridFS read - Step 7")
             let chunkCursor = try chunksCollection.find("files_id" == id, sortedBy: ["n": .ascending], skipping: skipChunks, limitedTo: endChunk - skipChunks).flatMap { (doc) -> (Chunk?) in
+                print("GridFS read - Step 7.1")
                 return Chunk(document: doc, chunksCollection: self.chunksCollection, filesCollection: self.filesCollection)
             }
             print("GridFS read - Step 8")
