@@ -248,11 +248,13 @@ public final class GridFS {
         /// - parameter start: The `Byte` where you start fetching
         /// - parameter end: The `Byte` where you stop fetching
         public func read(from start: Int = 0, to end: Int? = nil) throws -> Bytes {
+            print("GridFS read - Step 1")
             let remainderValue = start % Int(self.chunkSize)
+            print("GridFS read - Step 2")
             let skipChunks = (start - remainderValue) / Int(self.chunkSize)
-            
+            print("GridFS read - Step 3")
             var bytesRequested = Int(self.length) - start
-            
+            print("GridFS read - Step 4")
             if let end = end {
                 guard start < end else {
                     throw MongoError.negativeBytesRequested(start: start, end: end)
@@ -264,10 +266,10 @@ public final class GridFS {
                 
                 bytesRequested = end - start
             }
-            
+            print("GridFS read - Step 5")
             let lastByte = start + bytesRequested
             let lastChunkRemainder = lastByte % Int(self.chunkSize)
-            
+            print("GridFS read - Step 6")
             var endChunk = (lastByte - lastChunkRemainder) / Int(self.chunkSize)
             
             if lastChunkRemainder > 0 {
@@ -277,22 +279,24 @@ public final class GridFS {
             guard start >= 0 else {
                 throw MongoError.negativeDataRequested
             }
-            
+            print("GridFS read - Step 7")
             let chunkCursor = try chunksCollection.find("files_id" == id, sortedBy: ["n": .ascending], skipping: skipChunks, limitedTo: endChunk - skipChunks).flatMap { (doc) -> (Chunk?) in
                 return Chunk(document: doc, chunksCollection: self.chunksCollection, filesCollection: self.filesCollection)
             }
-            
+            print("GridFS read - Step 8")
             var allData = Bytes()
             
             for chunk in chunkCursor {
                 // `if skipChunks == 1` then we need the chunk.n to be 1 too,
                 // start counting at 0
                 if chunk.n == Int32(skipChunks) {
+                    print("GridFS read - Step 8.1")
                     allData.append(contentsOf: chunk.data[(start % Int(self.chunkSize))..<Swift.min(Int(self.chunkSize), chunk.data.count)])
                     
                 // if endChunk == 10 then we need the current chunk to be 9
                 // start counting at 0
                 } else if chunk.n == Int32(endChunk - 1) {
+                    print("GridFS read - Step 8.2")
                     let endIndex = lastByte - Int(chunk.n * self.chunkSize)
                     
                     guard endIndex >= 0 else {
@@ -305,12 +309,14 @@ public final class GridFS {
                     
                     allData.append(contentsOf: chunk.data[0..<endIndex])
                 } else if chunk.n < Int32(endChunk - 1) {
+                    print("GridFS read - Step 8.3")
                     allData.append(contentsOf: chunk.data)
                 } else {
+                    print("GridFS read - Step 8.4")
                     throw MongoError.internalInconsistency
                 }
             }
-            
+            print("GridFS read - Step 9")
             return allData
         }
         
