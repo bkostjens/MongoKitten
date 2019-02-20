@@ -669,19 +669,21 @@ public final class Server {
     /// - returns: The reply from the server
     @discardableResult @warn_unqualified_access
     internal func sendAndAwait(message msg: Message, overConnection connection: Connection, timeout: TimeInterval = 0) throws -> ServerReply {
+        print ("\(#function) - Step 1")
         let timeout = timeout > 0 ? timeout : defaultTimeout
-        
+        print ("\(#function) - Step 2")
         let requestId = msg.requestID
+        print ("\(#function) - Step 3")
         let messageData = try msg.generateData()
-        
+        print ("\(#function) - Step 4")
         let promise = ManualPromise<ServerReply>(timeoutAfter: .seconds(Int(timeout)))
-        
+        print ("\(#function) - Step 5")
         Connection.mutationsQueue.sync {
             connection.waitingForResponses[requestId] = promise
         }
-        
+        print ("\(#function) - Step 6")
         try connection.send(data: messageData)
-        
+        print ("\(#function) - Step 7")
         return try promise.await()
     }
     
